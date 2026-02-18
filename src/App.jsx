@@ -3,8 +3,12 @@ import { motion } from 'framer-motion';
 import { Search, Lock, Banknote, ArrowRight } from 'lucide-react';
 import Dither from './components/Dither';
 import { Navbar } from './components/Navbar';
-import UserDashboard from './components/UserDashboard';
+import MarketplaceDemo from './components/MarketplaceDemo';
+import TCNAgentVisualizer from './components/TCNAgentVisualizer';
 import CreditReliabilityMesh from './components/CreditMesh';
+import DecisionEngine from './components/DecisionEngine';
+import UserDashboard from './components/UserDashboard';
+import ShopkeeperDashboard from './components/ShopkeeperDashboard';
 import { HeroSection, HeroSplineBackground, HeroContent } from './components/ui/galaxy-interactive-hero-section';
 
 // Animations
@@ -25,7 +29,15 @@ const staggerContainer = {
 
 export default function App() {
   const [currentView, setCurrentView] = useState('home');
+  const [loanStatus, setLoanStatus] = useState('none'); // 'none', 'review', 'approved', 'rejected', 'structured_approved', 'structured_rejected'
+  const [structuredRequest, setStructuredRequest] = useState(null);
   const terminalRef = useRef(null);
+
+  const handleLoanApplication = (amount) => {
+    // Simulate API call
+    console.log(`Loan applied for: ${amount}`);
+    setLoanStatus('review');
+  };
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden text-white font-sans selection:bg-[var(--cyber-green)] selection:text-black">
@@ -43,9 +55,30 @@ export default function App() {
       {/* Main Content */}
       <div className="relative z-10">
         {currentView === 'demo' ? (
-          <UserDashboard onBack={() => setCurrentView('home')} />
+          <MarketplaceDemo onBack={() => setCurrentView('home')} />
+        ) : currentView === 'dashboard' ? (
+          <UserDashboard
+            onBack={() => setCurrentView('home')}
+            loanStatus={loanStatus}
+            onApplyLoan={handleLoanApplication}
+            onNavigateTo={setCurrentView}
+            setStructuredRequest={setStructuredRequest}
+          />
+        ) : currentView === 'shopkeeper' ? (
+          <ShopkeeperDashboard
+            onBack={() => setCurrentView('dashboard')}
+            requestData={structuredRequest}
+            onDecision={(decision) => setLoanStatus(decision === 'approved' ? 'structured_approved' : 'structured_rejected')}
+          />
+        ) : currentView === 'tcn' ? (
+          <TCNAgentVisualizer onBack={() => setCurrentView('home')} />
         ) : currentView === 'mesh' ? (
           <CreditReliabilityMesh onBack={() => setCurrentView('home')} />
+        ) : currentView === 'decision' ? (
+          <DecisionEngine
+            onBack={() => setCurrentView('home')}
+            onSanction={(decision) => setLoanStatus(decision)}
+          />
         ) : (
           <>
             {/* Landing Page Content */}

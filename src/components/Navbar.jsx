@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { motion, useScroll, useMotionValueEvent } from "framer-motion";
+import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 
 const menuItems = [
-    { name: "Features", href: "#features" },
-    { name: "Solution", href: "#solution" },
-    { name: "Pricing", href: "#pricing" },
-    { name: "Agent Demo", href: "#demo" },
+    { name: "TCN Agent", href: "#tcn" },
     { name: "Credit Mesh", href: "#mesh" },
-    { name: "About", href: "#about" },
-    { name: "Contact", href: "#contact" },
+    { name: "Final Decision", href: "#decision" },
+    { name: "Shopkeeper", href: "#shopkeeper" },
 ];
 
 export function Navbar({ onNavigate }) {
-    const [menuState, setMenuState] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const { scrollY } = useScroll();
 
@@ -40,90 +37,81 @@ export function Navbar({ onNavigate }) {
                     </div>
 
                     {/* Desktop Menu */}
-                    <div className="hidden lg:flex items-center gap-8">
-                        <ul className="flex gap-8 text-sm font-medium">
-                            {menuItems.map((item, index) => (
-                                <li key={index}>
-                                    <a
-                                        href={item.href}
-                                        onClick={(e) => {
-                                            if (item.name === "Agent Demo") {
-                                                e.preventDefault();
-                                                if (onNavigate) onNavigate('demo');
-                                            }
-                                            if (item.name === "Credit Mesh") {
-                                                e.preventDefault();
-                                                if (onNavigate) onNavigate('mesh');
-                                            }
-                                        }}
-                                        target={item.target || "_self"}
-                                        rel={item.target === "_blank" ? "noopener noreferrer" : ""}
-                                        className="text-white/90 hover:text-[var(--cyber-green)] transition-colors duration-200 cursor-pointer"
-                                    >
-                                        {item.name}
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                        <div className="h-4 w-[1px] bg-white/20"></div>
-                        <div className="flex gap-4">
-                            <button className="text-sm font-medium text-white hover:text-white/80">Login</button>
-                            <button className="px-4 py-2 text-sm font-bold text-black bg-white rounded-full hover:bg-[var(--cyber-green)] transition-colors">
-                                Sign Up
-                            </button>
-                        </div>
+                    <div className="hidden md:flex items-center gap-6">
+                        {menuItems.map((item) => (
+                            <a
+                                key={item.name}
+                                href={item.href}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    if (item.name === "TCN Agent") onNavigate && onNavigate('tcn');
+                                    if (item.name === "Credit Mesh") onNavigate && onNavigate('mesh');
+                                    if (item.name === "Final Decision") onNavigate && onNavigate('decision');
+                                    if (item.name === "Shopkeeper") onNavigate && onNavigate('shopkeeper');
+                                }}
+                                className="text-sm font-medium text-gray-300 hover:text-[var(--cyber-green)] transition-colors relative group"
+                            >
+                                {item.name}
+                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[var(--cyber-green)] transition-all group-hover:w-full"></span>
+                            </a>
+                        ))}
+                        <button
+                            onClick={() => onNavigate && onNavigate('dashboard')}
+                            className="px-4 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors border border-white/5"
+                        >
+                            Login
+                        </button>
                     </div>
 
-                    {/* Mobile Menu Toggle */}
+                    {/* Mobile Menu Button */}
                     <button
-                        onClick={() => setMenuState(!menuState)}
-                        className="lg:hidden text-white"
+                        className="md:hidden text-white"
+                        onClick={() => setIsOpen(!isOpen)}
                     >
-                        {menuState ? <X size={24} /> : <Menu size={24} />}
+                        {isOpen ? <X /> : <Menu />}
                     </button>
                 </div>
 
-                {/* Mobile Menu Dropdown */}
-                {menuState && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="lg:hidden absolute top-16 left-4 right-4 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-6 flex flex-col gap-6 shadow-2xl"
-                    >
-                        <ul className="flex flex-col gap-4 text-center">
-                            {menuItems.map((item, index) => (
-                                <li key={index}>
+                {/* Mobile Menu Overlay */}
+                <AnimatePresence>
+                    {isOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="absolute top-full left-0 w-full bg-black/95 backdrop-blur-xl border-t border-white/10 py-6 md:hidden rounded-b-2xl shadow-xl"
+                        >
+                            <div className="flex flex-col items-center gap-6">
+                                {menuItems.map((item) => (
                                     <a
+                                        key={item.name}
                                         href={item.href}
-                                        target={item.target || "_self"}
-                                        rel={item.target === "_blank" ? "noopener noreferrer" : ""}
                                         onClick={(e) => {
-                                            if (item.name === "Agent Demo") {
-                                                e.preventDefault();
-                                                if (onNavigate) onNavigate('demo');
-                                                setMenuState(false);
-                                            } else if (item.name === "Credit Mesh") {
-                                                e.preventDefault();
-                                                if (onNavigate) onNavigate('mesh');
-                                                setMenuState(false);
-                                            } else {
-                                                setMenuState(false);
-                                            }
+                                            e.preventDefault();
+                                            if (item.name === "TCN Agent") onNavigate && onNavigate('tcn');
+                                            if (item.name === "Credit Mesh") onNavigate && onNavigate('mesh');
+                                            if (item.name === "Final Decision") onNavigate && onNavigate('decision');
+                                            if (item.name === "Shopkeeper") onNavigate && onNavigate('shopkeeper');
+                                            setIsOpen(false);
                                         }}
-                                        className="text-lg text-white/90 hover:text-[var(--cyber-green)] block py-2 cursor-pointer"
+                                        className="text-lg font-medium text-gray-300 hover:text-[var(--cyber-green)]"
                                     >
                                         {item.name}
                                     </a>
-                                </li>
-                            ))}
-                        </ul>
-                        <div className="flex flex-col gap-3">
-                            <button className="w-full py-3 bg-white/5 border border-white/10 rounded-xl text-white hover:bg-white/10">Login</button>
-                            <button className="w-full py-3 bg-[var(--cyber-green)] text-black font-bold rounded-xl hover:bg-[#00cc7d]">Sign Up</button>
-                        </div>
-                    </motion.div>
-                )}
+                                ))}
+                                <button
+                                    onClick={() => {
+                                        onNavigate && onNavigate('dashboard');
+                                        setIsOpen(false);
+                                    }}
+                                    className="text-lg font-medium text-white hover:text-[var(--cyber-green)]"
+                                >
+                                    Login
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </nav>
         </header>
     );
