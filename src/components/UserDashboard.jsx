@@ -50,6 +50,16 @@ export default function UserDashboard({ onBack, loanStatus = 'none', onApplyLoan
     const [selectedShop, setSelectedShop] = useState(null);
     const [cart, setCart] = useState({}); // { itemId: quantity }
 
+    // Auto-navigate to shopkeeper for demo when request is in pending state
+    React.useEffect(() => {
+        if (financingStep === 4 && loanStatus === 'rejected') {
+            const timer = setTimeout(() => {
+                if (onNavigateTo) onNavigateTo('shopkeeper');
+            }, 2500);
+            return () => clearTimeout(timer);
+        }
+    }, [financingStep, loanStatus, onNavigateTo]);
+
     // ... (Chart Data logic remains same)
     // Initial Data
     const initialData = [
@@ -110,10 +120,10 @@ export default function UserDashboard({ onBack, loanStatus = 'none', onApplyLoan
                     userLocation: "Village-2, Sector B",
                     items: selectedItems,
                     total: cartTotal,
-                    riskScore: 0.28,
-                    gnnConfidence: 0.84,
-                    tcnStability: 0.79,
-                    rejectionReason: "Direct loan rejected due to high spending volatility exceeding cash-buffer thresholds."
+                    riskScore: 0.62, // Matches GNN
+                    gnnConfidence: 0.62,
+                    tcnStability: 0.58,
+                    rejectionReason: "Direct loan rejected due to Income Volatility (Spending volatility exceeding cash-buffer thresholds)."
                 });
             }
         }, 1500);
@@ -148,9 +158,45 @@ export default function UserDashboard({ onBack, loanStatus = 'none', onApplyLoan
                 )}
             </header>
 
+            {/* Top Status Card when Rejected */}
+            <AnimatePresence>
+                {loanStatus === 'rejected' && financingStep === 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="max-w-6xl mx-auto mb-8 p-6 rounded-2xl bg-red-500/10 border border-red-500/20 relative overflow-hidden"
+                    >
+                        <div className="flex items-start gap-4">
+                            <div className="p-3 rounded-full bg-red-500/20">
+                                <AlertCircle className="w-6 h-6 text-red-500" />
+                            </div>
+                            <div className="flex-1">
+                                <h2 className="text-xl font-bold text-white mb-1">Loan Application Status: Rejected</h2>
+                                <p className="text-sm text-gray-400 mb-4">Your loan request was not approved based on risk evaluation.</p>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-red-500/10">
+                                    <div>
+                                        <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Relational Risk Score (GNN)</div>
+                                        <div className="text-lg font-mono font-bold text-red-400">0.62</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Behavioral Stability (TCN)</div>
+                                        <div className="text-lg font-mono font-bold text-red-400">0.58</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Primary Risk Driver</div>
+                                        <div className="text-lg font-bold text-white">Income Volatility</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                {/* Left Column: Financial Behavior (2/3 width) - Hidden during strict financing flow? No, keep it for context but maybe dim it */}
+                {/* Left Column: Financial Behavior (2/3 width) */}
                 <div className={`lg:col-span-2 space-y-6 transition-opacity duration-500 ${financingStep > 0 ? 'opacity-40 pointer-events-none grayscale' : 'opacity-100'}`}>
 
                     {/* Graph Section */}
@@ -211,6 +257,33 @@ export default function UserDashboard({ onBack, loanStatus = 'none', onApplyLoan
                             <MetricCard label="Payment Reliability" value="98%" subtext="Strong" status="good" />
                         </div>
                     </div>
+
+                    {/* Secondary Fallback Card */}
+                    <AnimatePresence>
+                        {loanStatus === 'rejected' && financingStep === 0 && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="glass-panel p-8 rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-black/40 relative overflow-hidden group"
+                            >
+                                <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                                    <Store className="w-32 h-32 text-[var(--cyber-green)]" />
+                                </div>
+                                <div className="relative z-10">
+                                    <h3 className="text-2xl font-bold text-white mb-2">Need Support? Alternative Supply Financing Available</h3>
+                                    <p className="text-gray-400 mb-8 max-w-xl text-lg">
+                                        While direct cash lending was not approved, you may request supply-based financing through verified agri partners.
+                                    </p>
+                                    <button
+                                        onClick={() => setFinancingStep(1)}
+                                        className="px-8 py-4 bg-[var(--cyber-green)] hover:bg-[#00cc7d] text-black font-bold rounded-xl shadow-[0_0_30px_rgba(0,255,157,0.3)] transition-all flex items-center gap-2 text-lg"
+                                    >
+                                        Explore Alternative Financing <ArrowRight className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
 
                 {/* Right Column: Loan Status (1/3 width) - Switches to Financing Flow */}
@@ -222,13 +295,13 @@ export default function UserDashboard({ onBack, loanStatus = 'none', onApplyLoan
                             <motion.div
                                 key="status-card"
                                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                className="glass-panel p-6 rounded-2xl border border-white/10 bg-gradient-to-b from-white/5 to-black/40 h-full flex flex-col relative overflow-hidden"
+                                className="glass-panel p-6 rounded-2xl border border-white/10 bg-gradient-to-b from-white/5 to-black/40 h-full flex flex-col relative overflow-hidden min-h-[400px]"
                             >
                                 {/* Background Glow */}
                                 <div className={`absolute top-0 right-0 w-64 h-64 bg-gradient-to-br ${loanStatus === 'approved' ? 'from-green-500/20' : loanStatus === 'rejected' ? 'from-red-500/20' : 'from-blue-500/10'} blur-[80px] rounded-full pointer-events-none`} />
 
                                 <h2 className="text-lg font-bold mb-6 relative z-10">
-                                    {loanStatus === 'rejected' ? 'Alternative Financing' : 'Loan Application'}
+                                    {loanStatus === 'rejected' ? 'Current Status' : 'Loan Application'}
                                 </h2>
 
                                 <div className="flex-1 flex flex-col items-center justify-center text-center relative z-10">
@@ -274,46 +347,65 @@ export default function UserDashboard({ onBack, loanStatus = 'none', onApplyLoan
                                         </motion.div>
                                     )}
 
-                                    {/* STATUS: REJECTED - TRIGGER ALTERNATIVE FLOW */}
+                                    {/* STATUS: REJECTED - TRIGGER ALTERNATIVE FLOW handled by cards above */}
                                     {loanStatus === 'rejected' && (
                                         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
                                             <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-4 border border-red-500/20">
                                                 <AlertCircle className="w-8 h-8 text-red-400" />
                                             </div>
-                                            <h3 className="text-xl font-bold text-white mb-2">Application Rejected</h3>
-                                            <p className="text-sm text-gray-400 mb-6">
-                                                Direct cash lending is not available for your current risk profile.
+                                            <h3 className="text-xl font-bold text-white mb-2">Rejected</h3>
+                                            <p className="text-sm text-gray-400 mb-6 font-mono">
+                                                Risk Factor: 0.62 (High)
                                             </p>
-
-                                            {/* AI Pivot */}
-                                            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-left mb-6 relative overflow-hidden group">
-                                                <div className="absolute top-0 right-0 p-2 opacity-20">
-                                                    <Zap className="w-12 h-12 text-[var(--cyber-green)]" />
-                                                </div>
-                                                <h4 className="text-[var(--cyber-green)] font-bold mb-1 flex items-center gap-2">
-                                                    <Zap className="w-4 h-4" /> AI Alternative Support
-                                                </h4>
-                                                <p className="text-xs text-gray-300">
-                                                    We can connect you with verified agri-supply partners. The bank finances the shopkeeper instead.
-                                                </p>
+                                            <div className="text-[10px] text-red-400 bg-red-500/10 border border-red-500/20 px-4 py-2 rounded-lg">
+                                                See detailed analysis at top of page
                                             </div>
+                                        </motion.div>
+                                    )}
 
-                                            <button
-                                                onClick={() => setFinancingStep(1)}
-                                                className="w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
-                                            >
-                                                Activate Smart Assistance <ChevronRight className="w-4 h-4" />
+                                    {/* STATUS: STRUCTURED APPROVED */}
+                                    {loanStatus === 'structured_approved' && (
+                                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+                                            <div className="w-20 h-20 rounded-full bg-green-500/10 flex items-center justify-center mb-6 border border-green-500/20 shadow-[0_0_40px_rgba(34,197,94,0.2)]">
+                                                <CheckCircle className="w-10 h-10 text-green-400" />
+                                            </div>
+                                            <h3 className="text-2xl font-bold text-white mb-2">Structured Financing Approved</h3>
+                                            <p className="text-green-400/90 text-sm mb-4 font-bold uppercase tracking-wider">
+                                                Items ready for collection
+                                            </p>
+                                            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-left">
+                                                <div className="flex items-center gap-2 text-[var(--cyber-green)] mb-1">
+                                                    <Store className="w-4 h-4" />
+                                                    <span className="text-xs font-bold uppercase tracking-widest">{selectedShop?.name || 'Partner Store'}</span>
+                                                </div>
+                                                <div className="text-[10px] text-gray-400">Transaction Confirmed via Smart Contract</div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+
+                                    {/* STATUS: STRUCTURED REJECTED */}
+                                    {loanStatus === 'structured_rejected' && (
+                                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+                                            <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-4 border border-red-500/20">
+                                                <AlertCircle className="w-8 h-8 text-red-500" />
+                                            </div>
+                                            <h3 className="text-xl font-bold text-white mb-2">Shopkeeper Declined Request</h3>
+                                            <p className="text-sm text-gray-400 mb-6">
+                                                Please try another partner for your supply-based financing.
+                                            </p>
+                                            <button onClick={() => setFinancingStep(2)} className="w-full py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-xs font-bold uppercase tracking-widest">
+                                                Try Another Partner
                                             </button>
                                         </motion.div>
                                     )}
                                 </div>
                             </motion.div>
                         ) : (
-                            // ALTERNATIVE FINANCING MULTI-STEP FLOW
+                            // ALTERNATIVE FINANCING MULTI-STEP FLOW - FIXED AS SIDEBAR/MODAL HYBRID
                             <motion.div
                                 key="financing-flow"
                                 initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }}
-                                className="glass-panel p-6 rounded-2xl border border-[var(--cyber-green)]/30 bg-black/80 h-full flex flex-col relative"
+                                className="glass-panel p-6 rounded-2xl border border-[var(--cyber-green)]/30 bg-black/80 h-full flex flex-col relative min-h-[500px]"
                             >
                                 <button onClick={() => setFinancingStep(Math.max(0, financingStep - 1))} className="absolute top-4 right-4 text-gray-500 hover:text-white">
                                     <ArrowLeft className="w-4 h-4" />
@@ -422,7 +514,7 @@ export default function UserDashboard({ onBack, loanStatus = 'none', onApplyLoan
                                                 </div>
                                                 <h3 className="text-xl font-bold text-white mb-2">Structured Financing Approved</h3>
                                                 <p className="text-green-400/80 text-sm mb-8 bg-green-500/10 py-2 px-3 rounded-lg border border-green-500/20">
-                                                    Items Ready for Pickup at {selectedShop?.name}
+                                                    Items ready for collection
                                                 </p>
                                                 <button onClick={() => setFinancingStep(0)} className="text-xs text-gray-500 underline hover:text-white">Done</button>
                                             </motion.div>
@@ -431,9 +523,9 @@ export default function UserDashboard({ onBack, loanStatus = 'none', onApplyLoan
                                                 <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center mb-6 border border-red-500/20">
                                                     <AlertCircle className="w-10 h-10 text-red-500" />
                                                 </div>
-                                                <h3 className="text-xl font-bold text-white mb-2">Structured Request Declined</h3>
+                                                <h3 className="text-xl font-bold text-white mb-2">Shopkeeper Declined Request</h3>
                                                 <p className="text-gray-400 text-sm mb-8">
-                                                    {selectedShop?.name} declined the structured credit request.
+                                                    Try another partner
                                                 </p>
                                                 <button onClick={() => setFinancingStep(2)} className="w-full py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors">Try Another Shop</button>
                                             </motion.div>
@@ -442,10 +534,11 @@ export default function UserDashboard({ onBack, loanStatus = 'none', onApplyLoan
                                                 <div className="w-20 h-20 rounded-full bg-yellow-500/10 flex items-center justify-center mb-6 border border-yellow-500/20 animate-pulse">
                                                     <Clock className="w-10 h-10 text-yellow-500" />
                                                 </div>
-                                                <h3 className="text-xl font-bold text-white mb-2">Request Sent</h3>
+                                                <h3 className="text-xl font-bold text-white mb-2">Structured Financing Request Sent</h3>
                                                 <p className="text-gray-400 text-sm mb-8">
                                                     Waiting for Shopkeeper ({selectedShop?.name}) to approve inventory availability.
                                                 </p>
+
                                                 <div className="bg-white/5 rounded-lg p-4 w-full text-left border border-white/10">
                                                     <div className="text-xs text-gray-500 uppercase mb-2">Next Steps</div>
                                                     <div className="flex items-center gap-3 mb-2">

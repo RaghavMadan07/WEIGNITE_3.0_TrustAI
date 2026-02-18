@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Lock, Banknote, ArrowRight } from 'lucide-react';
 import Dither from './components/Dither';
+import Antigravity from './components/Antigravity';
 import { Navbar } from './components/Navbar';
 import MarketplaceDemo from './components/MarketplaceDemo';
 import TCNAgentVisualizer from './components/TCNAgentVisualizer';
@@ -29,7 +30,7 @@ const staggerContainer = {
 
 export default function App() {
   const [currentView, setCurrentView] = useState('home');
-  const [loanStatus, setLoanStatus] = useState('none'); // 'none', 'review', 'approved', 'rejected', 'structured_approved', 'structured_rejected'
+  const [loanStatus, setLoanStatus] = useState('rejected'); // 'none', 'review', 'approved', 'rejected', 'structured_approved', 'structured_rejected'
   const [structuredRequest, setStructuredRequest] = useState(null);
   const terminalRef = useRef(null);
 
@@ -37,6 +38,11 @@ export default function App() {
     // Simulate API call
     console.log(`Loan applied for: ${amount}`);
     setLoanStatus('review');
+
+    // Auto-reject for demo purposes
+    setTimeout(() => {
+      setLoanStatus('rejected');
+    }, 2500);
   };
 
   return (
@@ -44,7 +50,23 @@ export default function App() {
 
       {/* 1. Global Background (Fixed Spline Galaxy) */}
       <div className="fixed inset-0 z-0 bg-black">
-        <HeroSplineBackground />
+        <Antigravity
+          count={300}
+          magnetRadius={6}
+          ringRadius={7}
+          waveSpeed={0.4}
+          waveAmplitude={1}
+          particleSize={1.5}
+          lerpSpeed={0.05}
+          color="#00ff4c"
+          autoAnimate
+          particleVariance={1}
+          rotationSpeed={0}
+          depthFactor={1}
+          pulseSpeed={3}
+          particleShape="capsule"
+          fieldStrength={10}
+        />
       </div>
 
       {/* Navbar (Fixed on top of background) */}
@@ -77,7 +99,12 @@ export default function App() {
         ) : currentView === 'decision' ? (
           <DecisionEngine
             onBack={() => setCurrentView('home')}
-            onSanction={(decision) => setLoanStatus(decision)}
+            onSanction={(decision) => {
+              setLoanStatus(decision);
+              if (decision === 'rejected') {
+                setCurrentView('dashboard');
+              }
+            }}
           />
         ) : (
           <>

@@ -46,11 +46,11 @@ export function HeroContent() {
     return (
         <div className="relative z-10 text-left text-white pt-32 sm:pt-40 md:pt-48 px-4 max-w-4xl mx-auto pointer-events-none">
             <h1 className="text-4xl sm:text-6xl md:text-8xl font-bold mb-6 leading-tight tracking-tight drop-shadow-2xl pointer-events-auto">
-                Credit Without <br className="sm:hidden" />Cash.
+                TrustScore
             </h1>
-            <p className="text-lg sm:text-xl md:text-2xl mb-8 opacity-90 max-w-2xl text-gray-200 pointer-events-auto">
-                We lend <span className="text-[var(--cyber-green)] font-semibold">items</span>, not money.
-                Eliminating diversion risk for the unbanked with an autonomous agent network.
+            <p className="text-lg sm:text-xl md:text-2xl mb-8 opacity-90 max-w-2xl text-gray-200 pointer-events-auto leading-relaxed">
+                Decentralized trust through an <span className="text-[var(--cyber-green)] font-semibold">autonomous agent swarm</span>.
+                Bridging the credit gap with persistent, item-based AI intelligence.
             </p>
             <div className="flex pointer-events-auto flex-col sm:flex-row items-start space-y-3 sm:space-y-0 sm:space-x-4">
                 <button

@@ -40,6 +40,8 @@ export default function ShopkeeperDashboard({ onBack, requestData, onDecision, r
         setTimeout(() => {
             setIsProcessing(false);
             onDecision(decision);
+            // Auto-navigate back to dashboard to show result
+            if (onBack) onBack();
         }, 1500);
     };
 
@@ -125,7 +127,7 @@ export default function ShopkeeperDashboard({ onBack, requestData, onDecision, r
 
                         <div className="flex items-center gap-2 mb-8">
                             <ShieldCheck className="w-5 h-5 text-cyan-400" />
-                            <h2 className="text-lg font-bold">AI Risk Transparency Panel</h2>
+                            <h2 className="text-lg font-bold">Risk Summary from Bank</h2>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
